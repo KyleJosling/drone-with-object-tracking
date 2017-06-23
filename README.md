@@ -7,6 +7,7 @@ This repository contains the code to create a drone that can detect and follow a
 ## Materials
 
 - Arduino Uno
+- Arduino Sensor Shield (Makes wiring less of a nightmare)
 - Raspberry Pi 3 Model B
 - Quadcopter 450 Frame
 - MPU6050 Accelerometer/Gyroscope

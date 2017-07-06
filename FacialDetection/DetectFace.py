@@ -38,13 +38,24 @@ while(True):
         frame=cv2.rectangle(frame,(x,y),(x+w,y+h), (255,0,0),2)
         #Find eyes now cause they're always in the face
         #We input the grey region of interest (the rectange that the face we are looping for)
-        eyeRegionGray= grayFrame[y:y+h, x:x+w]
-        eyeRegionColour=frame[y:y+h,x:x+w]
-        eyes=eye_cascade.detectMultiScale(eyeRegionGray)
+
+
+        #right eye first
+        rightGrayROI= grayFrame[y:y+h, x:x+(w/2)]
+        rightColourROI=frame[y:y+h,x:x+(w/2)]
+        rightEye=eye_cascade.detectMultiScale(rightGrayROI)
+
+        #Maybe add some variables to make the size of the ROI cleared
+        leftGrayROI= grayFrame[y:y+h,(x+(w/2)):x+w]
+        leftColourROI=frame[y:y+h,(x+(w/2)):x+w]
+        leftEye=eye_cascade.detectMultiScale(leftGrayROI)
 
         #Draw eye rectangles
-        for (ex,ey,ew,eh) in eyes:
-            cv2.rectangle(eyeRegionColour,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+        for (ex,ey,ew,eh) in rightEye:
+            cv2.rectangle(rightColourROI,(ex,ey),(ex+ew,ey+eh),(0,120,120),2)
+
+        for (ex,ey,ew,eh) in leftEye:
+            cv2.rectangle(leftColourROI,(ex,ey),(ex+ew,ey+eh),(0,0,120),2)
 
 
 

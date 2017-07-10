@@ -3,6 +3,25 @@ import cv2
 import sys
 
 
+
+
+#This function detects eyes + face and returns rectangles
+def Detect(frame):
+    #Load files for eye and face detection
+    #Maybe gonna load these at beggining of program idk yet
+    face_cascade= cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+    eye_cascade= cv2.CascadeClassifier('haarcascade_eye.xml')
+
+    #Add an error in here just in case no face detected**
+    #Convert to grayscale
+    grayFrame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+
+    #Find faces in image
+    faces=face_cascade.detectMultiScale(grayFrame,1.3,5)
+
+    return faces
+
+
 def main():
 
     #Create tracker, using KCF
@@ -13,8 +32,11 @@ def main():
 
     ret,frame=cap.read()
 
-    #Define initial ROI as the whole frame
-    InitROI=cv2.selectROI(frame,False)
+    #Detect face
+    faces=Detect(frame)
+
+    #Define initial ROI as the face in the picture
+    InitROI=tuple(faces[0])
 
     #Initialize the tracker with the first frame and the ROI
     ret=tracker.init(frame,InitROI)
@@ -38,7 +60,15 @@ def main():
 
 
         k = cv2.waitKey(1) & 0xff
-        if k == 27 : break
+        if k == 27 :
+            break
+            #Release the capture, destroy windows.
+            cap.release()
+            cv2.destroyAllWindows()
+
+
+
+
 
 if __name__=='__main__':
     main()

@@ -46,6 +46,7 @@ def main():
 
 
     while(True):
+        
         #Read a new frame
 
         ret,frame=cap.read()

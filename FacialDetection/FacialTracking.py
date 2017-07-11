@@ -41,14 +41,24 @@ def main():
     #Initialize the tracker with the first frame and the ROI
     ret=tracker.init(frame,InitROI)
 
+    #count the frames
+    frameCounter=1
+
 
     while(True):
         #Read a new frame
 
         ret,frame=cap.read()
 
-        #Update tracker
-        ret,newROI=tracker.update(frame)
+        if (frameCounter>9):
+            #Do detection every 10 frames
+            newROI=tuple((Detect(frame))[0])
+            frameCounter=0
+
+        else:
+            #Update tracker
+            ret,newROI=tracker.update(frame)
+
 
         if ret:
             p1 = (int(newROI[0]), int(newROI[1]))
@@ -58,6 +68,9 @@ def main():
 
         cv2.imshow("Face Tracking", frame)
 
+        #Increment frame counter
+        frameCounter+=1
+        print "Frame number: " +str(frameCounter)
 
         k = cv2.waitKey(1) & 0xff
         if k == 27 :
@@ -65,8 +78,6 @@ def main():
             #Release the capture, destroy windows.
             cap.release()
             cv2.destroyAllWindows()
-
-
 
 
 

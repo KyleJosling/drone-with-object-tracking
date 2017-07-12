@@ -27,41 +27,60 @@ def main():
     #Create tracker, using KCF
     tracker =cv2.Tracker_create("KCF")
 
-    #We capture the first frame in the video
     cap=cv2.VideoCapture(0)
 
-    ret,frame=cap.read()
 
-    #Detect face
-    faces=Detect(frame)
+    faceFound=False
 
-    #Define initial ROI as the face in the picture
-    InitROI=tuple(faces[0])
+    while faceFound==False:
+        ret,frame=cap.read()
+        #Detect face
+        faces=Detect(frame)
+        print faces
+        if len(faces):
+            #Define initial ROI as the face in the picture
+            InitROI=tuple(faces[0])
+            faceFound=True
 
     #Initialize the tracker with the first frame and the ROI
-    ret=tracker.init(frame,InitROI)
+    ok=tracker.init(frame,InitROI)
 
     #count the frames
     frameCounter=1
 
 
     while(True):
-        
+
         #Read a new frame
 
         ret,frame=cap.read()
 
-        if (frameCounter>9):
-            #Do detection every 10 frames
-            newROI=tuple((Detect(frame))[0])
-            frameCounter=0
+        if (frameCounter>99):
+            #Do detection every 100 frames
+            faces=Detect(frame)
+            print type(faces)
+
+            if len(faces):
+                newROI=tuple(faces[0])
+                frameCounter=0
+                #Clear tracker, reinitialize
+                tracker.clear()
+                print "Tracker cleared"
+                tracker =cv2.Tracker_create("KCF")
+                ok=tracker.init(frame,newROI)
+                print ok
+                print "Tracker reinitialized"
+
+            else:
+                ok,newROI=tracker.update(frame)
+
 
         else:
             #Update tracker
-            ret,newROI=tracker.update(frame)
+            ok,newROI=tracker.update(frame)
 
 
-        if ret:
+        if ok:
             p1 = (int(newROI[0]), int(newROI[1]))
             p2 = (int(newROI[0] + newROI[2]), int(newROI[1] + newROI[3]))
             cv2.rectangle(frame, p1, p2, (0,0,255))

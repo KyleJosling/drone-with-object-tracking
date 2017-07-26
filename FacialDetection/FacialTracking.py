@@ -17,9 +17,26 @@ def Detect(frame):
     grayFrame=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
 
     #Find faces in image
-    faces=face_cascade.detectMultiScale(grayFrame,1.3,5)
+    faceRects=face_cascade.detectMultiScale(grayFrame,1.3,5)
 
-    return faces
+    #Add a check here to see if there is anything in faces
+    if len(faceRects):
+        for (x,y,w,h) in faceRects:
+
+            #Set right eye ROI
+            rightGrayROI= grayFrame[y:y+h,x:x+(w/2)]
+            rightColourROI=frame[y:y+h,x:x+(w/2)]
+            rightEye=eye_cascade.detectMultiScale(rightGrayROI)
+
+            #Set left eye ROI
+            leftGrayROI= grayFrame[y:y+h,(x+(w/2)):x+w]
+            leftColourROI=frame[y:y+h,(x+(w/2)):x+w]
+            leftEye=eye_cascade.detectMultiScale(leftGrayROI)
+
+        return faceRects,rightEye,leftEye
+
+    else:
+        return 0,0,0
 
 
 def main():
@@ -35,7 +52,7 @@ def main():
     while faceFound==False:
         ret,frame=cap.read()
         #Detect face
-        faces=Detect(frame)
+        faces,rEye,lEye=Detect(frame)
         print faces
         if len(faces):
             #Define initial ROI as the face in the picture
@@ -57,7 +74,7 @@ def main():
 
         if (frameCounter>99):
             #Do detection every 100 frames
-            faces=Detect(frame)
+            faces,rEye,lEye=Detect(frame)
             print type(faces)
 
             if len(faces):
@@ -81,6 +98,7 @@ def main():
 
 
         if ok:
+
             p1 = (int(newROI[0]), int(newROI[1]))
             p2 = (int(newROI[0] + newROI[2]), int(newROI[1] + newROI[3]))
             cv2.rectangle(frame, p1, p2, (0,0,255))

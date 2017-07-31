@@ -1,46 +1,14 @@
 import numpy as np
 import cv2
 import sys
-
-
-# This function detects eyes + face and returns rectangles
-def Detect(frame):
-    # Load files for eye and face detection
-    # Maybe gonna load these at beggining of program idk yet
-    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-    eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
-
-    # Add an error in here just in case no face detected**
-    # Convert to grayscale
-    grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Find faces in image
-    faceRects = face_cascade.detectMultiScale(grayFrame, 1.3, 5)
-
-    # Add a check here to see if there is anything in faces
-    if len(faceRects):
-        for (x, y, w, h) in faceRects:
-
-            # Set right eye ROI
-            rightGrayROI = grayFrame[y:y + h, x:x + (w / 2)]
-            rightColourROI = frame[y:y + h, x:x + (w / 2)]
-            rEye = eye_cascade.detectMultiScale(rightGrayROI)
-
-            # Set left eye ROI
-            leftGrayROI = grayFrame[y:y + h, (x + (w / 2)):x + w]
-            leftColourROI = frame[y:y + h, (x + (w / 2)):x + w]
-            lEye = eye_cascade.detectMultiScale(leftGrayROI)
-
-        return faceRects, rEye, lEye
-
-    else:
-        return [], [], []
-
+from DetectFace import Detect
 
 def main():
 
     # Create tracker, using KCF
-    tracker = cv2.Tracker_create("KCF")
+    faceTracker = cv2.Tracker_create("KCF")
+    leftTracker=cv2.Tracker_create("KCF")
+    rightTracker=cv2.Tracker_create("KCF")
 
     cap = cv2.VideoCapture(0)
 
@@ -53,6 +21,8 @@ def main():
         # Detect face
         faces, rightEye, leftEye = Detect(frame)
         print faces
+        print rightEye
+        print leftEye
         if len(faces):
             # Define initial ROI as the face in the picture
             InitROI = tuple(faces[0])
@@ -67,11 +37,11 @@ def main():
             leftEyeFound = True
 
     # Initialize the face tracker with the first frame and the ROI
-    faceOk = tracker.init(frame, InitROI)
+    faceOk = faceTracker.init(frame, InitROI)
     # Initialize the right eye tracker
-    rightEyeOk = tracker.init(frame, rightEyeInitROI)
+    rightEyeOk = rightTracker.init(frame, rightEyeInitROI)
     # Initialize the left eye tracker
-    leftEyeOk = tracker.init(frame, leftEyeInitROI)
+    leftEyeOk = leftTracker.init(frame, leftEyeInitROI)
 
     # count the frames
     frameCounter = 1
@@ -85,31 +55,53 @@ def main():
         if (frameCounter > 99):
             # Do detection every 100 frames
             faces, rightEye, leftEye = Detect(frame)
-            print type(faces)
+            print "Faces: " + str(faces)
+            print "Right Eye: " + str(rightEye)
+            print "Left Eye: " + str(leftEye)
 
-            if len(faces):
+            if (len(faces) and len(rightEye) and len(leftEye)):
                 newROI = tuple(faces[0])
                 frameCounter = 0
                 # Clear tracker, reinitialize
-                tracker.clear()
+                faceTracker.clear()
                 print "Tracker cleared"
-                tracker = cv2.Tracker_create("KCF")
-                faceOk = tracker.init(frame, newROI)
+                faceTracker = cv2.Tracker_create("KCF")
+                faceOk = faceTracker.init(frame, newROI)
                 print faceOk
                 print "Tracker reinitialized"
 
             else:
-                faceOk, newROI = tracker.update(frame)
+                faceOk, newROI = faceTracker.update(frame)
 
         else:
             # Update tracker
-            faceOk, newROI = tracker.update(frame)
+            print "Tracker updated"
+            faceOk, newROI = faceTracker.update(frame)
+            rightOk,newRightROI=rightTracker.update(frame)
+            leftOk,newLeftROI=leftTracker.update(frame)
 
+
+#Update the variables here.
+#Draw rectangles.
         if faceOk:
 
             p1 = (int(newROI[0]), int(newROI[1]))
             p2 = (int(newROI[0] + newROI[2]), int(newROI[1] + newROI[3]))
             cv2.rectangle(frame, p1, p2, (0, 0, 255))
+
+        if leftOk:
+
+            p3 = (int(newLeftROI[0]), int(newLeftROI[1]))
+            p4 = (int(newLeftROI[0] + newLeftROI[2]), int(newLeftROI[1] + newLeftROI[3]))
+            cv2.rectangle(frame, p3, p4, (0, 0, 255))
+
+        if rightOk:
+
+            p5 = (int(newRightROI[0]), int(newRightROI[1]))
+            p6 = (int(newRightROI[0] + newRightROI[2]), int(newRightROI[1] + newRightROI[3]))
+            print type(p5)
+            cv2.rectangle(frame, p5, p6, (0, 0, 255))
+
 
         cv2.imshow("Face Tracking", frame)
 

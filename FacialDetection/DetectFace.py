@@ -31,9 +31,9 @@ def Detect(frame):
             lEye = eye_cascade.detectMultiScale(leftGrayROI)
 
 
-            print "rEye Found! : " + str(rEye)
-            print "lEye Found! : " + str(lEye)
-        return faceRects, rEye, lEye
+            # print "rEye Found! : " + str(rEye)
+            # print "lEye Found! : " + str(lEye)
+        return faceRects
 
     else:
         return [], [], []

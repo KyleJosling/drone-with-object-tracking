@@ -19,5 +19,3 @@ This repository contains the code to create a drone that can detect and follow a
 - Raspberry Pi Camera v2
 
 ## Circuit Diagram
-
-In progress

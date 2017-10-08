@@ -61,17 +61,26 @@ def main():
 
             if (len(faces) and len(rightEye) and len(leftEye)):
                 newROI = tuple(faces[0])
+                newRightROI=tuple(rightEye[0])
+                newLeftROI=tuple(leftEye[0])
                 frameCounter = 0
                 # Clear tracker, reinitialize
                 faceTracker.clear()
-                print "Tracker cleared"
+                rightTracker.clear()
+                leftTracker.clear()
+                print "Trackers cleared"
                 faceTracker = cv2.Tracker_create("KCF")
+                leftTracker=cv2.Tracker_create("KCF")
+                rightTracker=cv2.Tracker_create("KCF")
                 faceOk = faceTracker.init(frame, newROI)
+                leftOk=leftTracker.init(frame,newLeftROI)
+                rightOk=rightTracker.init(frame,newRightROI)
                 print faceOk
                 print "Tracker reinitialized"
 
             else:
                 faceOk, newROI = faceTracker.update(frame)
+
 
         else:
             # Update tracker
@@ -83,26 +92,27 @@ def main():
 
 #Update the variables here.
 #Draw rectangles.
+#The extra newROI term is to offset the eyeROI
         if faceOk:
 
             p1 = (int(newROI[0]), int(newROI[1]))
             p2 = (int(newROI[0] + newROI[2]), int(newROI[1] + newROI[3]))
             cv2.rectangle(frame, p1, p2, (0, 0, 255))
+            print "NewROI" +str(newROI)
 
         if leftOk:
 
-            p3 = (int(newLeftROI[0]), int(newLeftROI[1]))
-            p4 = (int(newLeftROI[0] + newLeftROI[2]), int(newLeftROI[1] + newLeftROI[3]))
-            cv2.rectangle(frame, p3, p4, (0, 0, 255))
-
+            p3 = (int(newLeftROI[0]+newROI[0]+(newROI[2]/2)), int(newLeftROI[1]+newROI[1]))
+            p4 = (int(newLeftROI[0] + newLeftROI[2] +newROI[0] +newROI[2]/2), int(newLeftROI[1] + newLeftROI[3]+ newROI[1]))
+            cv2.rectangle(frame, p3, p4, (255, 0,0))
+            print "newLeftROI" +str(newLeftROI)
         if rightOk:
 
-            p5 = (int(newRightROI[0]), int(newRightROI[1]))
-            p6 = (int(newRightROI[0] + newRightROI[2]), int(newRightROI[1] + newRightROI[3]))
+            p5 = (int(newRightROI[0] + newROI[0]), int(newRightROI[1] + newROI[1]))
+            p6 = (int(newRightROI[0] + newRightROI[2] +newROI[0]), int(newRightROI[1] + newRightROI[3] + newROI[1]))
             print type(p5)
-            cv2.rectangle(frame, p5, p6, (0, 0, 255))
-
-
+            cv2.rectangle(frame, p5, p6, (0, 255, 0))
+            print "newRightROI " + str(newRightROI)
         cv2.imshow("Face Tracking", frame)
 
         # Increment frame counter

@@ -5,7 +5,7 @@
 
 #include "pid.h"
 
-//#include "FlightController.hpp"
+#include "FlightController.hpp"
 #include <iostream>
 #include <stdio.h>
 using namespace std;
@@ -18,13 +18,13 @@ vector<Rect> DetectFace(Mat frame);
  CascadeClassifier face_cascade;
 
 int main(int argc, char** argv){
-
+	
 	//Videocapture object
 	VideoCapture cap(0);
 
 	//if it fails return -1
 	if(!cap.isOpened()) return -1;
-
+	
 	//Tracker object for face
 	Ptr<Tracker> tracker=Tracker::create("KCF");
 
@@ -100,7 +100,6 @@ int main(int argc, char** argv){
       if( (char)c == 'c' ) { break; }
 
   }
-  cout << "hey" << endl;
 	return 0;
 }
 

@@ -6,9 +6,11 @@
 #include "Include/pid.h"
 
 #include <iostream>
-#include <stdio.h>
+#include <MSP.hpp>
+
 using namespace std;
 using namespace cv;
+using namespace msp;
 
 vector<Rect> DetectFace(Mat frame);
 
@@ -17,6 +19,10 @@ vector<Rect> DetectFace(Mat frame);
  CascadeClassifier face_cascade;
 
 int main(int argc, char** argv){
+	
+	//Instantiate msp
+	//This is for communicating with the flight controller
+	MSP msp("/dev/ttyUSB0");
 	
 	//Videocapture object
 	VideoCapture cap(0);

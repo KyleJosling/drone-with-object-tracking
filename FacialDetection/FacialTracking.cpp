@@ -3,9 +3,8 @@
 #include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/tracking.hpp"
 
-#include "pid.h"
+#include "Include/pid.h"
 
-#include "FlightController.hpp"
 #include <iostream>
 #include <stdio.h>
 using namespace std;

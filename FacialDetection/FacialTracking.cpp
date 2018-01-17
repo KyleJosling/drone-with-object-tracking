@@ -7,14 +7,16 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/tracking.hpp>
 
-#include "pid.h"
+#include "Include/pid.h"
 
 #include <iostream>
-#include <stdio.h>
+#include <MSP.hpp>
+
 using namespace std;
 using namespace cv;
+using namespace msp;
 
-Rect DetectFace(Mat frame);
+vector<Rect> DetectFace(Mat frame);
 
 
  String face_cascade_name = "haarcascade_frontalface_default.xml";
@@ -41,7 +43,7 @@ int main(int argc, char** argv){
 	if(!cap.isOpened()) return -1;
 
 	//Tracker object for face
-	Ptr<Tracker> tracker=TrackerKCF::create();
+	Ptr<Tracker> tracker=Tracker::create("KCF");
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
@@ -57,19 +59,25 @@ int main(int argc, char** argv){
 	if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
 
-	int frameCounter=1;
+	int frameCounter=0;
+	Mat frame;
+	Rect2d roi;
+	vector<Rect> rFaces;
 
   while(true)
   {
-		  Mat frame;
-      cap >> frame;
-			Rect2d roi;
+            cap >> frame;
+
 
 			//Reset tracker every 100 frames
-			if (frameCounter==1 || frameCounter>99){
-				roi = DetectFace(frame);
+			if (frameCounter==0 || frameCounter>100){
+				rFaces = DetectFace(frame);
+				if (!rFaces.empty()){
+				roi=rFaces[0];
 				tracker->init(frame,roi);
-				frameCounter=0;
+				frameCounter=1;
+				}
+
 			}
 
 			//Update tracker and calculate PID control output
@@ -100,19 +108,19 @@ int main(int argc, char** argv){
 
 				//Increment the frame counter
 				frameCounter++;
-
+				cout << "COunter: " << frameCounter << endl;
 
 			}
+
 
 			int c = waitKey(10);
       if( (char)c == 'c' ) { break; }
 
   }
-
 	return 0;
 }
 
-Rect DetectFace(Mat frame){
+vector<Rect> DetectFace(Mat frame){
 
 //Vector that contains the faces
 vector <Rect> faces;
@@ -126,6 +134,5 @@ equalizeHist(frame_gray,frame_gray);
 
 face_cascade.detectMultiScale(frame_gray,faces,1.1,2,0|CV_HAAR_SCALE_IMAGE,Size(30,30));
 
-//imshow("video", frame);
-return faces[0];
+	return faces;
 }

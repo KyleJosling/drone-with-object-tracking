@@ -1,7 +1,11 @@
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
-#include "opencv2/tracking.hpp"
+#include <msp/MSP.hpp>
+#include <msp/msp_msg.hpp>
+#include <msp/FlightController.hpp>
+
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/tracking.hpp>
 
 #include "pid.h"
 
@@ -18,6 +22,18 @@ Rect DetectFace(Mat frame);
 
 int main(int argc, char** argv){
 
+	// const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
+	// const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+
+	//fcu::FlightController fcu(device,baudrate);
+	//fcu.initialise();
+
+	// bool rc = fcu.setRc(0,0,0,1200);
+  // std::this_thread::sleep_for(std::chrono::seconds(1));
+	// rc = fcu.setRc(0,0,0,0000);
+	// std::cout << rc  << endl;
+
+
 	//Videocapture object
 	VideoCapture cap(0);
 
@@ -29,7 +45,7 @@ int main(int argc, char** argv){
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
-	PID pid = PID(0.1,300,-300,0.001,0.01,0.5);
+	PID pid = PID(0.1,250,-250,0.001,0.01,0.5);
 
 	//The set variable is half the width of the window
 	int sVar=0;
@@ -66,7 +82,7 @@ int main(int argc, char** argv){
 				if (ok){
 					//Set process variable
 					pVar=(roi.x)-250;
-					pidOutput=pid.calculate(sVar,pVar);
+					pidOutput=(pid.calculate(sVar,pVar))+1250;
 
 					//Output
 					cout <<" pVar: " << pVar << " output: " << pidOutput << endl;

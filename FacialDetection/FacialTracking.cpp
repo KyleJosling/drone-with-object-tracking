@@ -5,12 +5,11 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/tracking.hpp>
+#include <opencv2/tracking/tracking.hpp>
 
 #include "Include/pid.h"
 
 #include <iostream>
-#include <MSP.hpp>
 
 using namespace std;
 using namespace cv;
@@ -24,17 +23,16 @@ vector<Rect> DetectFace(Mat frame);
 
 int main(int argc, char** argv){
 
-	// const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
-	// const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
+	const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-	//fcu::FlightController fcu(device,baudrate);
-	//fcu.initialise();
+	fcu::FlightController fcu(device,baudrate);
+	fcu.initialise();
 
-	// bool rc = fcu.setRc(0,0,0,1200);
-  // std::this_thread::sleep_for(std::chrono::seconds(1));
-	// rc = fcu.setRc(0,0,0,0000);
-	// std::cout << rc  << endl;
-
+	bool rc = fcu.setRc(0,0,0,1200);
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+	rc = fcu.setRc(0,0,0,0000);
+	std::cout << rc  << endl;
 
 	//Videocapture object
 	VideoCapture cap(0);

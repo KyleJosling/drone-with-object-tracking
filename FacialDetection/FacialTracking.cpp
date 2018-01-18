@@ -5,34 +5,31 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/tracking/tracking.hpp>
+#include <opencv2/tracking/tracker.hpp>
 
 #include "Include/pid.h"
 
 #include <iostream>
 
-using namespace std;
 using namespace cv;
 using namespace msp;
 
-vector<Rect> DetectFace(Mat frame);
-
+std::vector<Rect> DetectFace(Mat frame);
+bool armFlightController();
 
  String face_cascade_name = "haarcascade_frontalface_default.xml";
  CascadeClassifier face_cascade;
 
 int main(int argc, char** argv){
 
+	//Declare device parameters
 	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
 	const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-	fcu::FlightController fcu(device,baudrate);
-	fcu.initialise();
+	//initialise flight controller
+	// fcu::FlightController fcu(device,baudrate);
+	// fcu.initialise();
 
-	bool rc = fcu.setRc(0,0,0,1200);
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-	rc = fcu.setRc(0,0,0,0000);
-	std::cout << rc  << endl;
 
 	//Videocapture object
 	VideoCapture cap(0);
@@ -41,7 +38,7 @@ int main(int argc, char** argv){
 	if(!cap.isOpened()) return -1;
 
 	//Tracker object for face
-	Ptr<Tracker> tracker=Tracker::create("KCF");
+	Ptr<TrackerKCF> tracker=TrackerKCF::create();
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
@@ -56,21 +53,23 @@ int main(int argc, char** argv){
 
 	if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
-
 	int frameCounter=0;
 	Mat frame;
 	Rect2d roi;
-	vector<Rect> rFaces;
+	std::vector<Rect> rFaces;
 
   while(true)
   {
-            cap >> frame;
+			//Get a frame
+			cap >> frame;
 
 
 			//Reset tracker every 100 frames
 			if (frameCounter==0 || frameCounter>100){
 				rFaces = DetectFace(frame);
+
 				if (!rFaces.empty()){
+				std::cout << "Reinit" << std::endl;
 				roi=rFaces[0];
 				tracker->init(frame,roi);
 				frameCounter=1;
@@ -86,12 +85,13 @@ int main(int argc, char** argv){
 
 				//Draw circle around faces
 				if (ok){
+					std::cout <<"drawing"<<std::endl;
 					//Set process variable
 					pVar=(roi.x)-250;
 					pidOutput=(pid.calculate(sVar,pVar))+1250;
 
 					//Output
-					cout <<" pVar: " << pVar << " output: " << pidOutput << endl;
+					std::cout <<" pVar: " << pVar << " output: " << pidOutput << std::endl;
 
 					//Paint a picture
 					Point center( roi.x + roi.width*0.5, roi.y + roi.height*0.5 );
@@ -106,7 +106,7 @@ int main(int argc, char** argv){
 
 				//Increment the frame counter
 				frameCounter++;
-				cout << "COunter: " << frameCounter << endl;
+				std::cout << "COunter: " << frameCounter << std::endl;
 
 			}
 
@@ -118,10 +118,10 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-vector<Rect> DetectFace(Mat frame){
+std::vector<Rect> DetectFace(Mat frame){
 
 //Vector that contains the faces
-vector <Rect> faces;
+std::vector <Rect> faces;
 Mat frame_gray;
 
 //Convert the colour to gray
@@ -131,6 +131,17 @@ cvtColor( frame, frame_gray, CV_BGR2GRAY );
 equalizeHist(frame_gray,frame_gray);
 
 face_cascade.detectMultiScale(frame_gray,faces,1.1,2,0|CV_HAAR_SCALE_IMAGE,Size(30,30));
-
+std::cout << "number of faces: " << faces.size() << std::endl;
 	return faces;
+}
+
+//Function that arms the motors
+bool armFlightController(fcu::FlightController fcu){
+
+	//Arm the motors by setting yaw to 2000 for a few seconds
+	bool rc = fcu.setRc(1500,1500,2000,1000);
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+	rc = fcu.setRc(1500,1500,1500,1500);
+	return fcu.isArmed();
+
 }

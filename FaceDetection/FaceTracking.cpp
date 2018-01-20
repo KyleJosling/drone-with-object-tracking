@@ -30,6 +30,7 @@ int main(int argc, char** argv){
 	//Initialise and arm flight controller
 	fcu::FlightController fcu(device,baudrate);
 	fcu.initialise();
+	fcu.reboot();
 	armFlightController(&fcu);
 
 	//Videocapture object
@@ -50,7 +51,7 @@ int main(int argc, char** argv){
 	//The process variable is the location of the face in the frame
 	int pVar;
 	//Calculated output
-	double pidOutput;
+	double yawOutput;
 
 	if( !face_cascade.load( face_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
@@ -69,15 +70,16 @@ int main(int argc, char** argv){
 			if (frameCounter==0 || frameCounter>100){
 				rFaces = DetectFace(frame);
 
+				//IF face found
 				if (!rFaces.empty()){
-				std::cout << "Reinit" << std::endl;
 				roi=rFaces[0];
+				tracker.release();
+				tracker=TrackerKCF::create();
 				tracker->init(frame,roi);
 				frameCounter=1;
 				}
 
 			}
-
 			//Update tracker and calculate PID control output
 			else{
 
@@ -89,10 +91,10 @@ int main(int argc, char** argv){
 					std::cout <<"drawing"<<std::endl;
 					//Set process variable
 					pVar=(roi.x)-250;
-					pidOutput=(pid.calculate(sVar,pVar))+1500;
-
+					yawOutput=(pid.calculate(sVar,pVar))+1500;
+					fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
 					//Output
-					std::cout <<" pVar: " << pVar << " output: " << pidOutput << std::endl;
+					std::cout <<" pVar: " << pVar << " output: " << yawOutput << std::endl;
 
 					//Paint a picture
 					Point center( roi.x + roi.width*0.5, roi.y + roi.height*0.5 );

@@ -24,7 +24,7 @@ void armFlightController(fcu::FlightController *fcu);
 int main(int argc, char** argv){
 
 	//Declare device parameters
-	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB3";
+	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB4";
 	const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
 	//Initialise and arm flight controller
@@ -142,11 +142,11 @@ std::cout << "number of faces: " << faces.size() << std::endl;
 //Function that arms the motors
 void armFlightController(fcu::FlightController *fcu){
 
-	const uint16_t yaw = 1900;
+	const uint16_t yaw = 2000;
 	while(fcu->isArmed()==false) {
 		std::cout << "not ready 1" << std::endl;
 			fcu->setRc(1500, 1500, yaw, 1010, 1000, 1000, 1000, 1000);
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 }

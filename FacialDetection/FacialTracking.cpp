@@ -1,5 +1,6 @@
 #include <msp/MSP.hpp>
 #include <msp/msp_msg.hpp>
+#include <msp/msg_print.hpp>
 #include <msp/FlightController.hpp>
 
 #include <opencv2/highgui/highgui.hpp>
@@ -15,21 +16,21 @@ using namespace cv;
 using namespace msp;
 
 std::vector<Rect> DetectFace(Mat frame);
-bool armFlightController();
+void armFlightController(fcu::FlightController *fcu);
 
- String face_cascade_name = "haarcascade_frontalface_default.xml";
+ String face_cascade_name = "Include/haarcascade_frontalface_default.xml";
  CascadeClassifier face_cascade;
 
 int main(int argc, char** argv){
 
 	//Declare device parameters
-	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
+	const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB3";
 	const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
-	//initialise flight controller
-	// fcu::FlightController fcu(device,baudrate);
-	// fcu.initialise();
-
+	//Initialise and arm flight controller
+	fcu::FlightController fcu(device,baudrate);
+	fcu.initialise();
+	armFlightController(&fcu);
 
 	//Videocapture object
 	VideoCapture cap(0);
@@ -42,7 +43,7 @@ int main(int argc, char** argv){
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
-	PID pid = PID(0.1,250,-250,0.001,0.01,0.5);
+	PID pid = PID(0.1,500,-500,0.001,0.01,0.5);
 
 	//The set variable is half the width of the window
 	int sVar=0;
@@ -88,7 +89,7 @@ int main(int argc, char** argv){
 					std::cout <<"drawing"<<std::endl;
 					//Set process variable
 					pVar=(roi.x)-250;
-					pidOutput=(pid.calculate(sVar,pVar))+1250;
+					pidOutput=(pid.calculate(sVar,pVar))+1500;
 
 					//Output
 					std::cout <<" pVar: " << pVar << " output: " << pidOutput << std::endl;
@@ -115,9 +116,12 @@ int main(int argc, char** argv){
       if( (char)c == 'c' ) { break; }
 
   }
+	cv::destroyAllWindows();
+	cap.release();
 	return 0;
 }
 
+//Function that returns faces in frame
 std::vector<Rect> DetectFace(Mat frame){
 
 //Vector that contains the faces
@@ -136,12 +140,13 @@ std::cout << "number of faces: " << faces.size() << std::endl;
 }
 
 //Function that arms the motors
-bool armFlightController(fcu::FlightController fcu){
+void armFlightController(fcu::FlightController *fcu){
 
-	//Arm the motors by setting yaw to 2000 for a few seconds
-	bool rc = fcu.setRc(1500,1500,2000,1000);
-	std::this_thread::sleep_for(std::chrono::seconds(3));
-	rc = fcu.setRc(1500,1500,1500,1500);
-	return fcu.isArmed();
+	const uint16_t yaw = 1900;
+	while(fcu->isArmed()==false) {
+		std::cout << "not ready 1" << std::endl;
+			fcu->setRc(1500, 1500, yaw, 1010, 1000, 1000, 1000, 1000);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
 
 }

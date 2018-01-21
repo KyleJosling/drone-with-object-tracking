@@ -41,16 +41,17 @@ int main(int argc, char** argv){
 
 	//Videocapture object
 	VideoCapture cap(0);
-
 	//if it fails return -1
 	if(!cap.isOpened()) return -1;
+	cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
-	PID yawPid = PID(0.1,500,-500,0.001,0.01,0.5);
+	PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
 
 	//The set variable is half the width of the window
-	int sVar=0;
+	int sVar=320;
 	//The process variable is the location of the face in the frame
 	int pVar=0;
 	//Calculated output
@@ -61,26 +62,27 @@ int main(int argc, char** argv){
 
   while(true)
   {
-			//Get a frame
-			cap >> frame;
+		//Get a frame
+		cap >> frame;
 
-			detectedPoint=detectObject(frame,100,50,50);
+		detectedPoint=detectObject(frame,100,50,50);
 
-			//Set process variable
-			//pVar=(roi.x)-250;
-			yawOutput=(yawPid.calculate(sVar,pVar));
-			//fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
-			//Output
-			std::cout <<" pVar: " << pVar << " output: " << yawOutput << std::endl;
+		//Set process variable
+		pVar=detectedPoint.pt.x;
+		yawOutput=(yawPid.calculate(sVar,pVar)+1500);
+		fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
+		//Output
+		std::cout << yawOutput << std::endl;
+		std::cout <<" pVar: " << pVar << " output: " << yawOutput << std::endl;
 
-			//Increment the frame counter
-			frameCounter++;
-			std::cout << "Counter: " << frameCounter << std::endl;
+		//Increment the frame counter
+		frameCounter++;
+		std::cout << "Counter: " << frameCounter << std::endl;
 
-			int c = waitKey(10);
-      if( (char)c == 'c' ) { break; }
+		int c = waitKey(10);
+    if( (char)c == 'c' ) { break; }
 
-			}
+		}
 
 	cv::destroyAllWindows();
 	cap.release();
@@ -159,7 +161,7 @@ obj_point detectObject(Mat frame, int hue, int sat, int val){
 void armFlightController(fcu::FlightController *fcu){
 
 	const uint16_t yaw = 2000;
-	while(fcu->isArmed()==true)
+	while(fcu->isArmed()==false)
 	{
 		std::cout << "not ready 1" << std::endl;
 		fcu->setRc(1500, 1500, yaw, 1010, 1000, 1000, 1000, 1000);

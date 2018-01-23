@@ -48,14 +48,26 @@ int main(int argc, char** argv){
 
 	//Declare PID controller
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
+	//PID for yaw control
 	PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
 
-	//The set variable is half the width of the window
-	int sVar=320;
-	//The process variable is the location of the face in the frame
-	int pVar=0;
+	//PID for pitch control
+	PID pitchPid =PID(0.1,500,-500,0.702,4.9,0.00006);
+
+	//The set variable for the yaw is half the width of the window
+	int yawSetVar=320;
+	//The set variable for the pitch is the size of the contour that represents the object at distance of 0.5m
+	//TODO-Calibrate this value
+	int pitchSetVar=20000;
+
+	//The yaw process variable is the location of the face in the frame
+	int yawPVar=0;
+	//The pitch process variable is the size of the objects contour
+	int pitchPVar=0;
+
 	//Calculated output
 	double yawOutput;
+	double pitchOutput;
 
 	int frameCounter=0;
 	Mat frame;
@@ -68,12 +80,12 @@ int main(int argc, char** argv){
 		detectedPoint=detectObject(frame,100,50,50);
 
 		//Set process variable
-		pVar=detectedPoint.pt.x;
-		yawOutput=(yawPid.calculate(sVar,pVar)+1500);
-		fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
+		yawPVar=detectedPoint.pt.x;
+		yawOutput=(yawPid.calculate(yawSetVar,yawPVar)+1500);
+		fcu.setRc(1500, pitchOutput, yawOutput, 1200, 1000, 1000, 1000, 1000);
 		//Output
-		std::cout << yawOutput << std::endl;
-		std::cout <<" pVar: " << pVar << " output: " << yawOutput << std::endl;
+		std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
+		std::cout <<" pitchPVar: " << pitchPVar << " output: " << pitchOutput << std::endl;
 
 		//Increment the frame counter
 		frameCounter++;

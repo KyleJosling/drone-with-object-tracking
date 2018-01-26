@@ -48,6 +48,7 @@ int main(int argc, char** argv){
 
 	//Declare PID controllers
 	//( double dt, double max, double min, double Kp, double Kd, double Ki );
+	//PID for yaw control
 	PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
 	PID pitchPid = PID(0.1,500,-500,0.702,4.9,0.00006);
 	PID throttlePid = PID (0.1,500,-500,0.702,4.9,0.00006);
@@ -95,8 +96,8 @@ int main(int argc, char** argv){
 		}
 		fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
 		//Output
-		std::cout << yawOutput << std::endl;
-		std::cout <<" pVar: " << pVar << " output: " << yawOutput << std::endl;
+		std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
+		std::cout <<" pitchPVar: " << pitchPVar << " output: " << pitchOutput << std::endl;
 
 		//Increment the frame counter
 		frameCounter++;

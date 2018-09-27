@@ -8,7 +8,7 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/tracking/tracker.hpp>
 
-#include "Include/pid.h"
+#include "pid.h"
 
 #include <iostream>
 
@@ -96,8 +96,8 @@ int main(int argc, char** argv){
         }
         fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
         //Output
-        std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
-        std::cout <<" pitchPVar: " << pitchPVar << " output: " << pitchOutput << std::endl;
+        // std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
+        // std::cout <<" pitchPVar: " << pitchPVar << " output: " << pitchOutput << std::endl;
 
         //Increment the frame counter
         frameCounter++;

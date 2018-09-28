@@ -17,14 +17,16 @@ include_directories(
 include_directories(
   ${raspicam_CV_INCLUDE_DIRS}
 )
-
+link_directories(/usr/local/lib)
 find_library(msp_LIBRARY msp)
 find_library(msp_fcu_LIBRARY msp_fcu)
 find_library(mspclient_LIBRARY mspclient)
+find_library(pid_LIBRARY pid)
 
 
 add_executable(testy src/ColourTracking.cpp)
 target_link_libraries(testy
+    ${pid_LIBRARY}
     ${msp_LIBRARY}
     ${msp_fcu_LIBRARY}
     ${mspclient_LIBRARY}

@@ -27,22 +27,25 @@ void armFlightController(fcu::FlightController *fcu);
 
 
 int main(int argc, char** argv){
-
+    
     obj_point detectedPoint;
     //Declare device parameters
-    const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyUSB0";
+    const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyACM0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
     //Initialise and arm flight controller
     fcu::FlightController fcu(device,baudrate);
     fcu.initialise();
-    fcu.reboot();
+    // fcu.reboot();
     //armFlightController(&fcu);
 
     //Videocapture object
     VideoCapture cap(0);
     //if it fails return -1
-    if(!cap.isOpened()) return -1;
+    if(!cap.isOpened()){
+        std::cout << "Fail" << std::endl;
+        return -1;
+    }
     cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
@@ -65,9 +68,9 @@ int main(int argc, char** argv){
 
     int frameCounter=0;
     Mat frame;
-
-  while(true)
-  {
+ 
+    while(true)
+    {
         //Get a frame
         cap >> frame;
         //~ int hue;
@@ -82,17 +85,17 @@ int main(int argc, char** argv){
         yawPVar=detectedPoint.pt.x;
         throttlePVar=detectedPoint.pt.y;
         if (yawPVar!=0){
-            yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
+        yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
         }
         else{
         yawOutput=1500;
         }
         if (throttlePVar!=0)
         {
-            throttleOutput=(throttlePid.calculate(throttleSVar,throttlePVar)+1000);
+        throttleOutput=(throttlePid.calculate(throttleSVar,throttlePVar)+1000);
         }
         else{
-            throttleOutput=1200;
+        throttleOutput=1200;
         }
         fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
         //Output
@@ -102,13 +105,13 @@ int main(int argc, char** argv){
         //Increment the frame counter
         frameCounter++;
         std::cout << "Counter: " << frameCounter << std::endl;
-        
+
         int c = waitKey(10);
-    if( (char)c == 'c' ) { break; }
-
-        }
-
-    cv::destroyAllWindows();
+        if( (char)c == 'c' ) { break; }
+         
+         }
+ 
+    // cv::destroyAllWindows();
     cap.release();
     return 0;
 }
@@ -135,9 +138,9 @@ obj_point detectObject(Mat frame, int hue, int sat, int val){
     cv::dilate(frame_threshold, frame_threshold, dilate_rect, Point(-1,-1), 2);
 
     //Display
-    namedWindow("video", CV_WINDOW_AUTOSIZE);
-    resizeWindow("Final", 500,500);
-    imshow("video", frame_threshold);
+    // namedWindow("video", CV_WINDOW_AUTOSIZE);
+    // resizeWindow("Final", 500,500);
+    // imshow("video", frame_threshold);
 
     //Find the contours
     std::vector<std::vector<Point>> contours;

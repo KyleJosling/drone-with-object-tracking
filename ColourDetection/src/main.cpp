@@ -8,6 +8,8 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/tracking/tracker.hpp>
 
+#include "detectObject/detectObject.hpp"
+
 #include "pid.h"
 
 #include <iostream>
@@ -15,16 +17,7 @@
 using namespace cv;
 using namespace msp;
 
-struct obj_point
-{
-    Point2f pt;
-    int size;
-};
-
-obj_point detectObject(Mat frame, int hue, int sat, int val);
-
 void armFlightController(fcu::FlightController *fcu);
-
 
 int main(int argc, char** argv){
     
@@ -36,8 +29,14 @@ int main(int argc, char** argv){
     //Initialise and arm flight controller
     fcu::FlightController fcu(device,baudrate);
     fcu.initialise();
-    // fcu.reboot();
-    //armFlightController(&fcu);
+
+    // if (fcu.isFirmwareCleanflight()) {
+    //         std::cout << "Boepity boopity" << std::endl; 
+    //     if (fcu.enableRxMSP()==1) {
+    //     }
+    // }
+
+    armFlightController(&fcu);
 
     //Videocapture object
     VideoCapture cap(0);
@@ -53,7 +52,7 @@ int main(int argc, char** argv){
     //( double dt, double max, double min, double Kp, double Kd, double Ki );
     //PID for yaw control
     PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
-    PID pitchPid = PID(0.1,500,-500,0.702,4.9,0.00006);
+    // PID pitchPid = PID(0.1,500,-500,0.702,4.9,0.00006);
     PID throttlePid = PID (0.1,500,-500,0.702,4.9,0.00006);
 
     //The set variable is half the width of the window
@@ -80,10 +79,11 @@ int main(int argc, char** argv){
         //~ std::cin >> sat;
         //~ std::cin >>val;
         detectedPoint=detectObject(frame,100,60,60);
-
+        // std::cout<< detectedPoint.pt.x << std::endl;
+        // std::cout<< detectedPoint.pt.y << std::endl;
         //Set process variable
-        yawPVar=detectedPoint.pt.x;
-        throttlePVar=detectedPoint.pt.y;
+        // yawPVar=detectedPoint.pt.x;
+        // throttlePVar=detectedPoint.pt.y;
         if (yawPVar!=0){
         yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
         }
@@ -116,82 +116,15 @@ int main(int argc, char** argv){
     return 0;
 }
 
-//Function that returns faces in frame
-obj_point detectObject(Mat frame, int hue, int sat, int val){
-
-    obj_point objectPoint;
-    // Create object for eroding (2x2 rectangle)
-    Mat erode_rect = getStructuringElement(MORPH_RECT,Size(2,2));
-    // Create object for dilating (5x5 rectangle)
-    Mat dilate_rect = getStructuringElement(MORPH_RECT,Size(5,5));
-
-    Mat frame_hsv;
-    Mat frame_threshold;
-
-    //Convert the colour to hsv
-    cvtColor( frame, frame_hsv, CV_BGR2HSV );
-
-    //Mask
-    cv::inRange(frame_hsv,Scalar(hue-7,sat,val),Scalar(hue+7,255,255),frame_threshold);
-
-    cv::erode(frame_threshold, frame_threshold, erode_rect,Point(-1,-1),2);
-    cv::dilate(frame_threshold, frame_threshold, dilate_rect, Point(-1,-1), 2);
-
-    //Display
-    // namedWindow("video", CV_WINDOW_AUTOSIZE);
-    // resizeWindow("Final", 500,500);
-    // imshow("video", frame_threshold);
-
-    //Find the contours
-    std::vector<std::vector<Point>> contours;
-    std::vector<Vec4i> hierarchy;
-
-    findContours(frame_threshold, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
-
-    int contour_no=0, largest_contour_no, largest_contour_area=0;
-
-    // Iterate through the contours
-    for(contour_no; contour_no < contours.size(); contour_no++)
-    {
-        // Find the largest contour
-        int current_area = contourArea(contours[contour_no]);std::vector<std::vector<Point>> contours;
-        std::vector<Vec4i> hierarchy;
-
-        if(current_area > largest_contour_area)
-        {
-            largest_contour_area = current_area;
-            largest_contour_no = contour_no;
-        }
-    }
-
-    // If no contours found then mean point is 0
-    if(largest_contour_area ==0 || largest_contour_area<800)
-    {
-        objectPoint.pt= Point2f(0,0);
-        objectPoint.size=0;
-    }
-
-    else
-    {
-        // Find moments of largest contour
-        Moments obj_momts = moments(contours[largest_contour_no], false);
-        // Calculate moment centre
-        objectPoint.pt= Point2f(obj_momts.m10 / obj_momts.m00, obj_momts.m01 / obj_momts.m00);
-        objectPoint.size=largest_contour_area;
-
-    }
-
-    return objectPoint;
-}
 
 //Function that arms the motors
 void armFlightController(fcu::FlightController *fcu){
 
-    const uint16_t yaw = 2000;
+    const uint16_t aux1 = 2000;
     while(fcu->isArmed()==false)
     {
-        std::cout << "not ready 1" << std::endl;
-        fcu->setRc(1500, 1500, yaw, 1010, 1000, 1000, 1000, 1000);
+        std::cout << "Attempting to arm" << std::endl;
+        fcu->setRc(1500, 1500, 1500, 1000, aux1, 2000, 2000, 2000);
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 

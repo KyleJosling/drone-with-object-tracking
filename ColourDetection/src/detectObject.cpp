@@ -28,10 +28,6 @@ struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
     cv::erode(frame_threshold, frame_threshold, erode_rect, cv::Point(-1,-1),2);
     cv::dilate(frame_threshold, frame_threshold, dilate_rect, cv::Point(-1,-1), 2);
 
-    //Display
-    // namedWindow("video", CV_WINDOW_AUTOSIZE);
-    // resizeWindow("Final", 500,500);
-    // imshow("video", frame_threshold);
 
     //Find the contours
     std::vector<std::vector<cv::Point>> contours;
@@ -58,6 +54,7 @@ struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
 
     // If no contours found then mean point is 0
     if (largest_contour_area == 0 || largest_contour_area < 800) {
+        std::cout<< "No objects found " << std::endl;
         objectPoint.pt= cv::Point2f(0,0);
         objectPoint.size=0;
     }

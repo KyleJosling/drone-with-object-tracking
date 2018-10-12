@@ -14,37 +14,37 @@
 
 #include <iostream>
 
-using namespace cv;
+#define DISPLAY
+
 using namespace msp;
 
 void armFlightController(fcu::FlightController *fcu);
 
 int main(int argc, char** argv){
-    
-    obj_point detectedPoint;
+
     //Declare device parameters
+    
     const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyACM0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
+    #ifdef FLIGHT_CONTROLLER
     //Initialise and arm flight controller
     fcu::FlightController fcu(device,baudrate);
     fcu.initialise();
-
-    // if (fcu.isFirmwareCleanflight()) {
-    //         std::cout << "Boepity boopity" << std::endl; 
-    //     if (fcu.enableRxMSP()==1) {
-    //     }
-    // }
-
     armFlightController(&fcu);
+    #endif
 
-    //Videocapture object
-    VideoCapture cap(0);
-    //if it fails return -1
+
+    obj_point detectedPoint;
+
+    // Open video capture
+    cv::VideoCapture cap(0);
+
     if(!cap.isOpened()){
         std::cout << "Fail" << std::endl;
         return -1;
     }
+
     cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
@@ -58,60 +58,60 @@ int main(int argc, char** argv){
     //The set variable is half the width of the window
     int yawSVar=320;
     int throttleSVar=240;
+
     //The process variable is the location of the face in the frame
     int yawPVar=0;
     int throttlePVar=0;
+
     //Calculated output
     double yawOutput;
     double throttleOutput;
 
     int frameCounter=0;
-    Mat frame;
+    cv::Mat frame;
  
-    while(true)
-    {
+    while (true) {
         //Get a frame
         cap >> frame;
-        //~ int hue;
-        //~ int sat;
-        //~ int val;
-        //~ std::cin >> hue;
-        //~ std::cin >> sat;
-        //~ std::cin >>val;
+        
+        // Detect the object in the frame (hard coded values for now)
         detectedPoint=detectObject(frame,100,60,60);
-        // std::cout<< detectedPoint.pt.x << std::endl;
-        // std::cout<< detectedPoint.pt.y << std::endl;
+
+        std::cout<< detectedPoint.pt.x << std::endl;
+        std::cout<< detectedPoint.pt.y << std::endl;
+
         //Set process variable
         // yawPVar=detectedPoint.pt.x;
         // throttlePVar=detectedPoint.pt.y;
-        if (yawPVar!=0){
-        yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
+
+        if (yawPVar!=0) {
+            yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
+        } else {
+            yawOutput=1500;
         }
-        else{
-        yawOutput=1500;
-        }
-        if (throttlePVar!=0)
-        {
-        throttleOutput=(throttlePid.calculate(throttleSVar,throttlePVar)+1000);
-        }
-        else{
-        throttleOutput=1200;
-        }
+       
+        #ifdef FLIGHT_CONTROLLER
         fcu.setRc(1500, 1500, yawOutput, 1200, 1000, 1000, 1000, 1000);
+        #endif
+
         //Output
-        // std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
-        // std::cout <<" pitchPVar: " << pitchPVar << " output: " << pitchOutput << std::endl;
+        std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
 
         //Increment the frame counter
         frameCounter++;
         std::cout << "Counter: " << frameCounter << std::endl;
 
-        int c = waitKey(10);
+        #ifdef DISPLAY 
+        cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
+        cv::resizeWindow("Final", 500,500);
+        cv::imshow("video", frame);
+        #endif
+
+        int c = cv::waitKey(10);
         if( (char)c == 'c' ) { break; }
-         
-         }
+    }
  
-    // cv::destroyAllWindows();
+    cv::destroyAllWindows();
     cap.release();
     return 0;
 }

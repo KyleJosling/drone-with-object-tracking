@@ -23,7 +23,7 @@ struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
     cv::cvtColor( frame, frame_hsv, CV_BGR2HSV );
 
     //Mask
-    cv::inRange( frame_hsv, cv::Scalar(hue-7,sat,val), cv::Scalar(hue+7,255,255), frame_threshold);
+    cv::inRange( frame_hsv, cv::Scalar(hue-40,sat,val), cv::Scalar(hue+40,255,255), frame_threshold);
 
     cv::erode(frame_threshold, frame_threshold, erode_rect, cv::Point(-1,-1),2);
     cv::dilate(frame_threshold, frame_threshold, dilate_rect, cv::Point(-1,-1), 2);
@@ -68,6 +68,9 @@ struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
 
     }
 
+    cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
+    cv::resizeWindow("Final", 500,500);
+    cv::imshow("video1", frame_threshold);
+
     return objectPoint;
-    // return 1;
 }

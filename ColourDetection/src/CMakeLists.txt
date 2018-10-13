@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(raspicam REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(Threads REQUIRED)
+
 IF (OpenCV_FOUND AND raspicam_CV_FOUND)
 MESSAGE(STATUS "COMPILING")
 
@@ -34,6 +36,7 @@ target_link_libraries(Object-Tracking-Drone
     ${OpenCV_LIBS}
     ${raspicam_CV_LIBS}
     ${raspicam_LIBS}
+    ${CMAKE_THREAD_LIBS_INIT}
     Object-Tracking-Drone-lib
     )
 add_definitions(-std=c++11)

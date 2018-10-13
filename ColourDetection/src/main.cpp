@@ -4,7 +4,7 @@
 #include <msp/FlightController.hpp>
 
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/tracking/tracker.hpp>
 
@@ -13,10 +13,11 @@
 #include "pid.h"
 
 #include <iostream>
+#include <thread>
 #include <sys/stat.h>
 
-#define NODISPLAY
-#define FLIGHT_CONTROLLER
+#define DISPLAY
+// #define FLIGHT_CONTROLLER
 
 using namespace msp;
 
@@ -24,28 +25,10 @@ void armFlightController(fcu::FlightController *fcu);
 
 bool findController(const std::string name);
 
-int main(int argc, char** argv){
+static int yawPVar = 0;
+static int throttlePVar = 0;
 
-    //Declare device parameters
-    
-    const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyACM0";
-    const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
-
-    #ifdef FLIGHT_CONTROLLER
-    
-    // Check if the controller exists
-    if (!findController(device)) {
-        std::cout << "Flight controller at " << device << " does not exist. Is the flight controller plugged in?" << std::endl;
-        return 1;
-    }
-
-    //Initialise and arm flight controller
-    fcu::FlightController fcu(device, baudrate);
-    fcu.initialise();
-    armFlightController(&fcu);
-
-    #endif
-
+void imageHandler() {
 
     obj_point detectedPoint;
 
@@ -54,33 +37,16 @@ int main(int argc, char** argv){
 
     if(!cap.isOpened()){
         std::cout << "Fail" << std::endl;
-        return -1;
     }
 
     cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
-    //Declare PID controllers
-    //( double dt, double max, double min, double Kp, double Kd, double Ki );
-    //PID for yaw control
-    PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
-
-    //The set variable is half the width of the window
-    int yawSVar=320;
-    int throttleSVar=240;
-
-    //The process variable is the location of the face in the frame
-    int yawPVar=0;
-    int throttlePVar=0;
-
-    //Calculated output
-    double yawOutput;
-    double throttleOutput;
-
     int frameCounter=0;
     cv::Mat frame;
- 
+    
     while (true) {
+
         //Get a frame
         cap >> frame;
         
@@ -92,6 +58,68 @@ int main(int argc, char** argv){
 
         //Set process variable
         yawPVar=detectedPoint.pt.x;
+
+        //Increment the frame counter
+        frameCounter++;
+        std::cout << "Counter: " << frameCounter << std::endl;
+
+        #ifdef DISPLAY 
+        cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
+        cv::resizeWindow("Final", 500,500);
+        cv::imshow("video", frame);
+        #endif
+
+        int c = cv::waitKey(10);
+        if( (char)c == 'c' ) { break; }
+
+    }
+
+    cv::destroyAllWindows();
+    cap.release();
+
+}
+
+int main(int argc, char** argv){
+
+    //Declare device parameters
+    
+    const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyACM0";
+    const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
+
+    #ifdef FLIGHT_CONTROLLER
+    // Check if the controller exists
+    if (!findController(device)) {
+        std::cout << "Flight controller at " << device << " does not exist. Is the flight controller plugged in?" << std::endl;
+        return 1;
+    }
+
+    //Initialise and arm flight controller
+    fcu::FlightController fcu(device, baudrate);
+    fcu.initialise();
+    armFlightController(&fcu);
+    #endif
+
+
+    //Declare PID controllers
+    //( double dt, double max, double min, double Kp, double Kd, double Ki );
+    //PID for yaw control
+    PID yawPid = PID(0.1,500,-500,0.702,4.9,0.00006);
+
+    //The set variable is half the width of the window
+    int yawSVar=320;
+    int throttleSVar=240;
+
+    //The process variable is the location of the face in the frame
+
+    //Calculated output
+    double yawOutput;
+    double throttleOutput;
+
+    std::thread detector(imageHandler); 
+
+    detector.detach();
+
+    while (true) {
 
         if (yawPVar!=0) {
             yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
@@ -108,25 +136,8 @@ int main(int argc, char** argv){
         }
         #endif
 
-        //Output
-        std::cout <<" yawPVar: " << yawPVar << " output: " << yawOutput << std::endl;
-
-        //Increment the frame counter
-        frameCounter++;
-        std::cout << "Counter: " << frameCounter << std::endl;
-
-        #ifdef DISPLAY 
-        cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
-        cv::resizeWindow("Final", 500,500);
-        cv::imshow("video", frame);
-        #endif
-
-        int c = cv::waitKey(10);
-        if( (char)c == 'c' ) { break; }
     }
- 
-    cv::destroyAllWindows();
-    cap.release();
+
     return 0;
 }
 

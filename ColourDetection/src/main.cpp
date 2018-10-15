@@ -3,21 +3,15 @@
 #include <msp/msg_print.hpp>
 #include <msp/FlightController.hpp>
 
-#include <opencv2/highgui/highgui.hpp>
-
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/tracking/tracker.hpp>
-
 #include "detectObject/detectObject.hpp"
+#include "imageHandler/imageHandler.hpp"
 
 #include "pid.h"
+#include "globals.hpp"
 
 #include <iostream>
 #include <thread>
 #include <sys/stat.h>
-
-#define DISPLAY
-// #define FLIGHT_CONTROLLER
 
 using namespace msp;
 
@@ -25,64 +19,13 @@ void armFlightController(fcu::FlightController *fcu);
 
 bool findController(const std::string name);
 
-static int yawPVar = 0;
-static int throttlePVar = 0;
 
-void imageHandler() {
-
-    obj_point detectedPoint;
-
-    // Open video capture
-    cv::VideoCapture cap(0);
-
-    if(!cap.isOpened()){
-        std::cout << "Fail" << std::endl;
-    }
-
-    cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
-
-    int frameCounter=0;
-    cv::Mat frame;
-    
-    while (true) {
-
-        //Get a frame
-        cap >> frame;
-        
-        // Detect the object in the frame (hard coded values for now)
-        detectedPoint=detectObject(frame, 145, 50, 65);
-
-        std::cout<< detectedPoint.pt.x << std::endl;
-        std::cout<< detectedPoint.pt.y << std::endl;
-
-        //Set process variable
-        yawPVar=detectedPoint.pt.x;
-
-        //Increment the frame counter
-        frameCounter++;
-        std::cout << "Counter: " << frameCounter << std::endl;
-
-        #ifdef DISPLAY 
-        cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
-        cv::resizeWindow("Final", 500,500);
-        cv::imshow("video", frame);
-        #endif
-
-        int c = cv::waitKey(10);
-        if( (char)c == 'c' ) { break; }
-
-    }
-
-    cv::destroyAllWindows();
-    cap.release();
-
-}
+//The global process variable is the location of the face in the frame
+int yawPVar = 0;
 
 int main(int argc, char** argv){
-
-    //Declare device parameters
     
+    //Declare device parameters
     const std::string device=(argc>1) ? std::string(argv[1]) :"/dev/ttyACM0";
     const size_t baudrate = (argc>2) ? std::stoul(argv[2]) : 115200;
 
@@ -109,14 +52,12 @@ int main(int argc, char** argv){
     int yawSVar=320;
     int throttleSVar=240;
 
-    //The process variable is the location of the face in the frame
 
     //Calculated output
     double yawOutput;
     double throttleOutput;
 
     std::thread detector(imageHandler); 
-
     detector.detach();
 
     while (true) {

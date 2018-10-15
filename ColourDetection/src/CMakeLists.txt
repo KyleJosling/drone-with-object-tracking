@@ -27,6 +27,7 @@ find_library(mspclient_LIBRARY mspclient)
 find_library(pid_LIBRARY pid)
 add_library(detect-Object-lib detectObject.cpp)
 add_library(image-Handler-lib imageHandler.cpp)
+add_library(fc-lib fc.cpp)
 
 add_executable(Object-Tracking-Drone main.cpp)
 target_link_libraries(Object-Tracking-Drone
@@ -40,6 +41,7 @@ target_link_libraries(Object-Tracking-Drone
     ${CMAKE_THREAD_LIBS_INIT}
     image-Handler-lib
     detect-Object-lib
+    fc-lib
     )
 add_definitions(-std=c++11)
 

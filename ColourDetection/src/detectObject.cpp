@@ -7,7 +7,7 @@
 
 
 //Function that returns faces in frame
-struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
+cv::Rect2d detectObject(cv::Mat frame, int hue, int sat, int val) {
 
     obj_point objectPoint;
 
@@ -57,20 +57,21 @@ struct obj_point detectObject(cv::Mat frame, int hue, int sat, int val) {
         std::cout<< "No objects found " << std::endl;
         objectPoint.pt= cv::Point2f(0,0);
         objectPoint.size=0;
+        return cv::Rect2d(0,0,0,0);
+    } else {
+        
+        return cv::boundingRect(cv::Mat(contours[largest_contour_no]));
+        // // Find moments of largest contour
+        // cv::Moments obj_momts = moments(contours[largest_contour_no], false);
+        // // Calculate moment centre
+        // objectPoint.pt= cv::Point2f(obj_momts.m10 / obj_momts.m00, obj_momts.m01 / obj_momts.m00);
+        // objectPoint.size=largest_contour_area;
+
     }
-
-    else {
-        // Find moments of largest contour
-        cv::Moments obj_momts = moments(contours[largest_contour_no], false);
-        // Calculate moment centre
-        objectPoint.pt= cv::Point2f(obj_momts.m10 / obj_momts.m00, obj_momts.m01 / obj_momts.m00);
-        objectPoint.size=largest_contour_area;
-
-    }
-
+    
+    #ifdef DISPLAY
     cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
     cv::resizeWindow("Final", 500,500);
     cv::imshow("video1", frame_threshold);
-
-    return objectPoint;
+    #endif
 }

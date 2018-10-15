@@ -1,4 +1,5 @@
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/tracking/tracker.hpp>
 
@@ -11,8 +12,12 @@
 
 
 void imageHandler() {
-
+    
+    // Detected object
     obj_point detectedPoint;
+
+    // Tracker object
+    cv::Ptr<cv::TrackerKCF> tracker = cv::TrackerKCF::create();
 
     // Open video capture
     cv::VideoCapture cap(0);
@@ -26,20 +31,41 @@ void imageHandler() {
 
     int frameCounter=0;
     cv::Mat frame;
-    
+    cv::Rect2d roi;
+    bool ok;
+    // Frame loop
     while (true) {
 
         //Get a frame
         cap >> frame;
         
-        // Detect the object in the frame (hard coded values for now)
-        detectedPoint=detectObject(frame, 145, 50, 65);
+        if (frameCounter == 0 || frameCounter > 100) {
 
-        std::cout<< detectedPoint.pt.x << std::endl;
-        std::cout<< detectedPoint.pt.y << std::endl;
+            // Detect the object in the frame (hard coded values for now)
+            roi = detectObject(frame, 145, 50, 65);
+            
+            // Reinitialize tracker
+            if (roi.height > 0) {
 
-        //Set process variable
-        yawPVar=detectedPoint.pt.x;
+               tracker.release(); 
+               tracker = cv::TrackerKCF::create();
+               tracker->init(frame, roi);
+            }
+        } else {
+
+            ok = tracker->update(frame, roi);
+
+            if (ok) {
+
+                std::cout<< detectedPoint.pt.x << std::endl;
+                std::cout<< detectedPoint.pt.y << std::endl;
+
+                //Set process variable
+                yawPVar=detectedPoint.pt.x;
+
+            }
+        }
+        
 
         //Increment the frame counter
         frameCounter++;
@@ -52,7 +78,7 @@ void imageHandler() {
         #endif
 
         int c = cv::waitKey(10);
-        if( (char)c == 'c' ) { break; }
+        if ( (char)c == 'c' ) break; 
 
     }
 

@@ -10,4 +10,4 @@ struct obj_point {
 
 };
 
-obj_point detectObject(cv::Mat frame, int hue, int sat, int val);
+cv::Rect2d detectObject(cv::Mat frame, int hue, int sat, int val);

@@ -1,7 +1,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/tracking/tracker.hpp>
+#include <opencv2/tracking/tracking.hpp>
 
 #include <iostream>
 
@@ -10,6 +10,7 @@
 #include "detectObject/detectObject.hpp"
 #include "imageHandler/imageHandler.hpp"
 
+using namespace cv;
 
 void imageHandler() {
     
@@ -17,7 +18,7 @@ void imageHandler() {
     obj_point detectedPoint;
 
     // Tracker object
-    cv::Ptr<cv::TrackerKCF> tracker = cv::TrackerKCF::create();
+    Ptr<TrackerKCF> tracker = TrackerKCF::create();
 
     // Open video capture
     cv::VideoCapture cap(0);
@@ -48,7 +49,7 @@ void imageHandler() {
             if (roi.height > 0) {
 
                tracker.release(); 
-               tracker = cv::TrackerKCF::create();
+               tracker = TrackerKCF::create();
                tracker->init(frame, roi);
             }
         } else {

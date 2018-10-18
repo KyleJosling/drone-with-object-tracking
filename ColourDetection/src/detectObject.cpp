@@ -58,8 +58,6 @@ cv::Rect2d detectObject(cv::Mat frame_threshold) {
     // If no contours found then mean point is 0
     if (largest_contour_area == 0 || largest_contour_area < 800) {
         std::cout<< "No objects found " << std::endl;
-        objectPoint.pt= cv::Point2f(0,0);
-        objectPoint.size=0;
         return cv::Rect2d(0,0,0,0);
     } else {
         return cv::boundingRect(cv::Mat(contours[largest_contour_no]));

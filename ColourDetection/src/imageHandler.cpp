@@ -11,7 +11,6 @@
 #include "detectObject/detectObject.hpp"
 #include "imageHandler/imageHandler.hpp"
 
-#define DISPLAY
 
 void imageHandler() {
     
@@ -28,8 +27,8 @@ void imageHandler() {
         std::cout << "Fail" << std::endl;
     }
 
-    cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
+    cap.set(CV_CAP_PROP_FRAME_WIDTH,352);
+    cap.set(CV_CAP_PROP_FRAME_HEIGHT,288);
 
     cv::Mat frame;
     cv::Rect2d roi;
@@ -48,7 +47,7 @@ void imageHandler() {
         // Flip to hsv every frame
         frame = processImg(frame, 145, 50, 65);
 
-        if (frameCounter == 0 || frameCounter > 100) {
+        if (frameCounter == 0 || frameCounter > 10) {
 
             // Detect the object in the frame (hard coded values for now)
             roi = detectObject(frame);
@@ -62,18 +61,18 @@ void imageHandler() {
                frameCounter = 1;
             }
         } else {
-
-            ok = tracker->update(frame, roi);
-
-            if (ok) {
-
-                //Set process variable
-                yawPVar=roi.x + (roi.width/2);
-
-            } else {
-                std::cout << "Not ok" << std::endl;
-            }
-        }
+ 
+             ok = tracker->update(frame, roi);
+ 
+             if (ok) {
+ 
+                 //Set process variable
+                 yawPVar=roi.x + (roi.width/2);
+ 
+             } else {
+                 std::cout << "Not ok" << std::endl;
+             }
+         }
         
 
         //Increment the frame counter

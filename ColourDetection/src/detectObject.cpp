@@ -5,11 +5,7 @@
 
 #include "detectObject/detectObject.hpp"
 
-
-//Function that returns faces in frame
-cv::Rect2d detectObject(cv::Mat frame, int hue, int sat, int val) {
-
-    obj_point objectPoint;
+cv::Mat processImg(cv::Mat frame, int hue, int sat, int val) {
 
     // Create object for eroding (2x2 rectangle)
     cv::Mat erode_rect = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(2,2));
@@ -28,6 +24,13 @@ cv::Rect2d detectObject(cv::Mat frame, int hue, int sat, int val) {
     cv::erode(frame_threshold, frame_threshold, erode_rect, cv::Point(-1,-1),2);
     cv::dilate(frame_threshold, frame_threshold, dilate_rect, cv::Point(-1,-1), 2);
 
+    return frame_threshold;
+}
+
+//Function that returns faces in frame
+cv::Rect2d detectObject(cv::Mat frame_threshold) {
+
+    obj_point objectPoint;
 
     //Find the contours
     std::vector<std::vector<cv::Point>> contours;
@@ -59,14 +62,7 @@ cv::Rect2d detectObject(cv::Mat frame, int hue, int sat, int val) {
         objectPoint.size=0;
         return cv::Rect2d(0,0,0,0);
     } else {
-        
         return cv::boundingRect(cv::Mat(contours[largest_contour_no]));
-        // // Find moments of largest contour
-        // cv::Moments obj_momts = moments(contours[largest_contour_no], false);
-        // // Calculate moment centre
-        // objectPoint.pt= cv::Point2f(obj_momts.m10 / obj_momts.m00, obj_momts.m01 / obj_momts.m00);
-        // objectPoint.size=largest_contour_area;
-
     }
     
     #ifdef DISPLAY

@@ -4,13 +4,14 @@
 #include <opencv2/tracking/tracking.hpp>
 
 #include <iostream>
+#include <ctime>
 
 #include "globals.hpp"
 
 #include "detectObject/detectObject.hpp"
 #include "imageHandler/imageHandler.hpp"
 
-using namespace cv;
+#define DISPLAY
 
 void imageHandler() {
     
@@ -18,7 +19,7 @@ void imageHandler() {
     obj_point detectedPoint;
 
     // Tracker object
-    Ptr<TrackerKCF> tracker = TrackerKCF::create();
+    cv::Ptr<cv::TrackerKCF> tracker = cv::TrackerKCF::create();
 
     // Open video capture
     cv::VideoCapture cap(0);
@@ -30,27 +31,35 @@ void imageHandler() {
     cap.set(CV_CAP_PROP_FRAME_WIDTH,640);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
-    int frameCounter=0;
     cv::Mat frame;
     cv::Rect2d roi;
+    int frameCounter = 0;
     bool ok;
+
     // Frame loop
     while (true) {
+
+        // Measure loop rate 
+        std::clock_t begin = std::clock();
 
         //Get a frame
         cap >> frame;
         
+        // Flip to hsv every frame
+        frame = processImg(frame, 145, 50, 65);
+
         if (frameCounter == 0 || frameCounter > 100) {
 
             // Detect the object in the frame (hard coded values for now)
-            roi = detectObject(frame, 145, 50, 65);
+            roi = detectObject(frame);
             
             // Reinitialize tracker
             if (roi.height > 0) {
-
+               std::cout << " Somethin detected " << std::endl;
                tracker.release(); 
-               tracker = TrackerKCF::create();
+               tracker = cv::TrackerKCF::create();
                tracker->init(frame, roi);
+               frameCounter = 1;
             }
         } else {
 
@@ -58,12 +67,11 @@ void imageHandler() {
 
             if (ok) {
 
-                std::cout<< detectedPoint.pt.x << std::endl;
-                std::cout<< detectedPoint.pt.y << std::endl;
-
                 //Set process variable
-                yawPVar=detectedPoint.pt.x;
+                yawPVar=roi.x + (roi.width/2);
 
+            } else {
+                std::cout << "Not ok" << std::endl;
             }
         }
         
@@ -72,7 +80,13 @@ void imageHandler() {
         frameCounter++;
         std::cout << "Counter: " << frameCounter << std::endl;
 
+        // Measure loop rate 
+        std::clock_t end = std::clock();
+        std::cout << (1/(double(end-begin)/CLOCKS_PER_SEC)) << std::endl;
+
+
         #ifdef DISPLAY 
+        cv::rectangle(frame, roi.tl(), roi.br(), cv::Scalar(255,0,0));
         cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
         cv::resizeWindow("Final", 500,500);
         cv::imshow("video", frame);

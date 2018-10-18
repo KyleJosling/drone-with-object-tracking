@@ -14,7 +14,7 @@ include_directories(include)
 add_subdirectory(src)
 
 #Preprocessor macros
-#add_definitions(src DISPLAY)
+add_definitions(src DISPLAY)
 #add_definitions(src FLIGHT_CONTROLLER)
 
 install(DIRECTORY include/ DESTINATION include)

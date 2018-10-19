@@ -55,7 +55,7 @@ int main(int argc, char** argv){
     while (true) {
 
         if (yawPVar != 0) {
-            yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
+            // yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
         } else {
             yawOutput = 1500;
         }
@@ -68,6 +68,7 @@ int main(int argc, char** argv){
             std::cout << "No longer armed" << std::endl;
         }
         #endif
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     return 0;

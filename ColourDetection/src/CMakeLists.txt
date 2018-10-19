@@ -56,7 +56,7 @@ add_definitions(-std=c++11)
 
 #Preprocessor macros
 add_definitions(-DDISPLAY)
-#add_definitions(src FLIGHT_CONTROLLER)
+add_definitions(-DFLIGHT_CONTROLLER)
 
 ELSE()
 MESSAGE(FATAL_ERROR "MISSING RASPICAM")

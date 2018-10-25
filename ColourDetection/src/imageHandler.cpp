@@ -61,13 +61,15 @@ void imageHandler() {
                frameCounter = 1;
             }
         } else {
- 
+            
+             // Update tracker
              ok = tracker->update(frame, roi);
  
              if (ok) {
  
                  //Set process variable
-                 yawPVar=roi.x + (roi.width/2);
+                 yawPVar = roi.x + (roi.width/2);
+                 pitchPVar = (roi.height);
  
              } else {
                  std::cout << "Not ok" << std::endl;

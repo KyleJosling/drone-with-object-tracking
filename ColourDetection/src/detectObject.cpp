@@ -5,6 +5,7 @@
 
 #include "detectObject/detectObject.hpp"
 
+// Image processing function
 cv::Mat processImg(cv::Mat frame, int hue, int sat, int val) {
 
     // Create object for eroding (2x2 rectangle)
@@ -27,7 +28,7 @@ cv::Mat processImg(cv::Mat frame, int hue, int sat, int val) {
     return frame_threshold;
 }
 
-//Function that returns faces in frame
+//Function that returns object in frame
 cv::Rect2d detectObject(cv::Mat frame_threshold) {
 
     obj_point objectPoint;

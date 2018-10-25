@@ -8,10 +8,12 @@
 
 #include "fc/fc.hpp"
 
+// Arming procedure
 bool armFlightController(fcu::FlightController *fcu){
 
     const uint16_t aux1 = 2000;
     int attempts = 0;
+
     while(fcu->isArmed()==false) {
         attempts++;
         std::cout << "Attempting to arm" << std::endl;
@@ -27,6 +29,7 @@ bool armFlightController(fcu::FlightController *fcu){
 
 }
 
+// Function to check if flight controller exists
 bool findController(const std::string name) {
     struct stat buffer;
     return (stat (name.c_str(), &buffer) == 0); 

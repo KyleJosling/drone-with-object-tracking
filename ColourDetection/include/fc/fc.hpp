@@ -3,6 +3,6 @@
 #include <msp/msg_print.hpp>
 #include <msp/FlightController.hpp>
 
-void armFlightController(fcu::FlightController *fcu);
+bool armFlightController(fcu::FlightController *fcu);
 
 bool findController(const std::string name);

@@ -40,11 +40,16 @@ int main(int argc, char** argv){
     //Initialise and arm flight controller
     if (!(findController(device))) {
         std::cout << "No flight controller at " << device << "exists." << std::endl;
-        return 1;
+        return 0;
     }
+
     fcu::FlightController fcu(device, baudrate);
     fcu.initialise();
-    armFlightController(&fcu);
+    if (!armFlightController(&fcu)) {
+        std::cout << "Flight controller failed to arm" << std::endl;
+        return 0;
+    }
+
     #endif
     
     // 
@@ -62,11 +67,6 @@ int main(int argc, char** argv){
        
         #ifdef FLIGHT_CONTROLLER
         fcu.setRc(1500, 1500, 1500, 1400, 2000, 1000, 1000, 1000);
-
-        // Check if FCU is still armed
-        if (!fcu.isArmed()) {
-            std::cout << "No longer armed" << std::endl;
-        }
         #endif
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }

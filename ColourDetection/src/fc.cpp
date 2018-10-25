@@ -8,15 +8,22 @@
 
 #include "fc/fc.hpp"
 
-void armFlightController(fcu::FlightController *fcu){
+bool armFlightController(fcu::FlightController *fcu){
 
     const uint16_t aux1 = 2000;
-    while(fcu->isArmed()==false)
-    {
+    int attempts = 0;
+    while(fcu->isArmed()==false) {
+        attempts++;
         std::cout << "Attempting to arm" << std::endl;
         fcu->setRc(1500, 1500, 1500, 1100, aux1, 1000, 1000, 1000);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        if (attempts > 4) {
+            return false;
+        }
     }
+
+    return true;
 
 }
 

@@ -31,7 +31,7 @@ int main(int argc, char** argv){
 
     //The set variable is half the width of the window
     int yawSVar = 352/2;
-    int pitchPVar = 240;
+    int pitchSVar = 240;
 
     //Calculated output
     double yawOutput;
@@ -62,6 +62,12 @@ int main(int argc, char** argv){
         // Calculate yaw based on object detected
         if (yawPVar != 0) {
             yawOutput=(yawPid.calculate(yawSVar,yawPVar)+1500);
+        } else {
+            yawOutput = 1500;
+        }
+
+        if (pitchPVar != 0) {
+            pitchOutput=(pitchPid.calculate(pitchSVar,pitchPVar)+1500);
         } else {
             yawOutput = 1500;
         }

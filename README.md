@@ -2,18 +2,13 @@
 
 ## Overview
 
-This repository contains the code to create a drone that can detect and follow coloured objects. It uses a Pi for object detection and an Arduino for a flight controller. The pi uses OpenCV to detect faces and sends the location of the face in the frame to the Arduino over the Multiwii Serial Protocol, which moves the drone to follow the object.
-
-I soldered up a pcb with the Arduino and the other sensors. The drone can achieve a stable hover, and right now the yaw is controlled based on where the object is.
+This repository contains the code to create a drone that can detect and follow a solid coloured object. It uses a Pi for object detection and a BetaFlight flight controller. The pi uses OpenCV to detect objects and controls the drone via the Multiwii Serial Protocol.
 
 ## Materials
 
 - Raspberry Pi 3 Model B (OpenCV installed with extra modules)
 - Quadcopter 450 Frame
-- Arduino Nano
-- MPU6050 Accelerometer/Gyroscope
-- HK5883 Magnetometer
-- BMP180 Barometer
+- Holybro Kakute F4 flight controller
 - Power Distribution Board
 - SimonK 30A ESCs
 - EMAX 2213 935KV Motors

@@ -69,7 +69,7 @@ int main(int argc, char** argv){
         if (pitchPVar != 0) {
             pitchOutput=(pitchPid.calculate(pitchSVar,pitchPVar)+1500);
         } else {
-            yawOutput = 1500;
+            pitchOutput = 1500;
         }
        
         #ifdef FLIGHT_CONTROLLER
